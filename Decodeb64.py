@@ -1,8 +1,8 @@
 # !/usr/bin/env python -*- coding: utf-8 -*-
 
-# This program allows to lay out and decode received frames from Multitech MTDOT-EVB-868
+# This program allows to lay out and decode received messages from Multitech MDOT-EVB-868
 # This is a testing program, so it has been concieved for a specific file in a specific "Tests" folder.
-# You can change the file to read at line XX.
+# You can change the file to read at line 29.
 # If you want to keep the intermediary file, just comment the final line.
 # The main loop analyzes the mid_file line by line and seeks for the pattern corresponding to the wanted data.
 # Then, it decodes and calculates GPS coordinates, and write it with SNR, RSSI and time information in the out_file.
@@ -12,7 +12,7 @@
 # ------------------------- #
 
 import base64
-import os
+import os  # useful only when commenting the last line
 
 # ------------------------- #
 # Global Variable
@@ -52,30 +52,30 @@ with open(mid_file, 'r') as f:
                             longitude = ((liste[10] + (liste[9] * 256) + (liste[8] * 256 * 256) + (liste[7] * 256 * 256
                                                                 * 256)) / ((2 ** 31) - 1) * 180)
                             lng2 = round(longitude, 4)
-                            resultat = ('température = ', (str(temp)), '°C', '\n', 'latitude = ', (str(lat2)),
-                                        '°', '\n', 'longitude = ', (str(lng2)), '°', '\n')
+                            resultat = ('Temperature = ', (str(temp)), '°C', '\n', 'Latitude = ', (str(lat2)),
+                                        '°', '\n', 'Longitude = ', (str(lng2)), '°', '\n')
                             result2 = ''.join(resultat)
                             f2.write(result2)
                         elif 'lsnr:' in line:  # Signal to Noise Ratio retrieving
-                            lsnr = ('Rapport Signal / Bruit = ', line[5:len(line)])
+                            lsnr = ('Signal to Noise Ratio = ', line[5:len(line)])
                             lsnr2 = ''.join(lsnr)
                             f2.write(lsnr2)
                         elif 'rssi:' in line:  # Received Signal Strength Information retreiving
-                            rssi = ('Puissance du signal (en dBm) = ', line[5:len(line)])
+                            rssi = ('Received Signal Strength Indicator (dBm) = ', line[5:len(line)])
                             rssi2 = ''.join(rssi)
                             f2.write(rssi2)
                         elif 'timestamp:' in line:  # Time information formating + laying out
-                            année = line[10:14]
-                            mois = line[15:17]
-                            jour = line[18:20]
-                            heure = line[21:23]
+                            year = line[10:14]
+                            month = line[15:17]
+                            day = line[18:20]
+                            hour = line[21:23]
                             minutes = line[24:26]
-                            secondes = line[27:29]
-                            time = ('Date = ', jour, '-', mois, '-', année, ', à ', heure, 'h', minutes, ' (',
-                                    secondes, ' secondes)', '\n', '\n')
+                            seconds = line[27:29]
+                            time = ('Date = ', month, '-', day, '-', year, ', at ', hour, 'h', minutes, ' (',
+                                    seconds, ' seconds)', '\n', '\n')
                             time2 = ''.join(time)
                             f2.write(time2)
-                        if 'tmst:' in line:  # If end of frame is met, break
+                        if 'tmst:' in line:  # If end of packet is met, break
                             break
 
 os.remove(mid_file)  # Comment for DEBUG
