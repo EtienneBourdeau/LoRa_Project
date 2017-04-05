@@ -30,6 +30,8 @@ TMP = 'Temperature'
 LSNR = 'Signal to Noise Ratio'
 RSSI = 'Received Signal Strength Indicator (dBm)'
 DAT = 'Date'
+LGT = 'Light'
+
 
 # ------------------------- #
 # Main Program
@@ -42,9 +44,10 @@ with open(file, 'r') as f:
     rssi = None
     dat = None
     lsnr = None
+    creamap = None
     for line in f:
         kv = line.split(' = ')  # Creates a table, splitting columns from '=': 1st element is the key, 2nd is the value.
-        if kv[0] == TMP:  # Checks if each line contains the wanted pattern (patterns are set in Global Variables above.
+        if kv[0] == TMP:  # Checks if each line contains the wanted pattern(patterns are set in Global Variables above).
             value = kv[1].strip('°C\n')
             tmp = float(value)
         elif kv[0] == LAT:
@@ -62,7 +65,6 @@ with open(file, 'r') as f:
         elif kv[0] == DAT:
             dat = kv[1].strip('\n')
         if lat and rssi and lng and tmp and lsnr and dat:  # When all patterns are found :
-
             # Laying out of the marker
             markerpopup = ('Temperature = ', str(tmp), '°C || ', 'Latitude = ', str(lat), '° || ', 'Longitude = ',
                            str(lng), '° || ', 'Signal to Noise Ratio (SNR) = ', str(lsnr), ' || ',
@@ -71,9 +73,14 @@ with open(file, 'r') as f:
             folium.Marker([lat, lng], popup=markerpopup2).add_to(cez)  # Creation of the marker
             lat = None
             lng = None  # Set back latitude and longitude to False, else they won't be found on next iteration.
+            creamap = True
 
 # ------------------------- #
 # Map Save
 # ------------------------- #
-
-cez.save('./map.html')  # Save map with markers on it
+if creamap == True:
+    cez.save('./map.html')  # Save map with markers on it
+else:
+    print('Unable to generate a map. Please check latitudes and longitudes in out_file.')
+    print("If you did not use Multitech Mdot data with Decodeb64.py, you may not have GPS data.")
+    creamap = False

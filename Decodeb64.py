@@ -29,32 +29,48 @@ ALLOWSUITE = False
 # Main Program
 # ------------------------- #
 
+# User input to determine which file the program must analyse:
+
+answer = input('1 - datalaurent.txt \n2 - dataetienne.txt \nWhich file do you want to analyse ? : ')
+test = (int(answer))
+
 # Character replacement from in_file to mid_file
-if FILEXIST:
-    try:
-        if LAURENT_FILE.is_file():
-            with open('./In_Files/laurent/datalaurent.txt', 'r') as f:
-                with open(MID_FILE, 'w') as f2:
-                    filedata = f.read()
-                    filedata = filedata.replace(',', '\n').replace(' ', '\n').replace('"', '').replace('{', '').replace\
-                                                                            ('}', '\n').replace('(null)', '(null) \n')
-                    f2.write(filedata)
-                    print("analyzing 'datalaurent.txt'")
-                    ALLOWSUITE = True
+if test == 1:  # Check if datalaurent.txt exists, then lays it out to be read.
+    if FILEXIST:
+        try:
+            if LAURENT_FILE.is_file():
+                with open('./In_Files/laurent/datalaurent.txt', 'r') as f:
+                    with open(MID_FILE, 'w') as f2:
+                        filedata = f.read()
+                        filedata = filedata.replace(',', '\n').replace(' ', '\n').replace('"', '').replace('{', '')\
+                                                                .replace('}', '\n').replace('(null)', '(null) \n')
+                        f2.write(filedata)
+                        print("\nanalyzing 'datalaurent.txt'")
+                        ALLOWSUITE = True  # When ALLOWSUITE is set to true, the main loop can be run.
+        except FileNotFoundError:
+            FILEXIST = False
 
-        elif ETIENNE_FILE.is_file():
-            with open('./In_Files/etienne/dataetienne.txt', 'r') as f:
-                with open(MID_FILE, 'w') as f2:
-                    filedata = f.read()
-                    filedata = filedata.replace(',', '\n').replace(' ', '\n').replace('"', '').replace('{', '').replace\
-                                                                            ('}', '\n').replace('(null)', '(null) \n')
-                    f2.write(filedata)
-                    print("analyzing 'dataetienne.txt'")
-                    ALLOWSUITE = True
-    except FileNotFoundError:
-        FILEXIST = False
+elif test == 2:  # Check if dataetienne.txt exists, then lays it out to be read.
+    if FILEXIST:
+        try:
+            if ETIENNE_FILE.is_file():
+                with open('./In_Files/etienne/dataetienne.txt', 'r') as f:
+                    with open(MID_FILE, 'w') as f2:
+                        filedata = f.read()
+                        filedata = filedata.replace(',', '\n').replace(' ', '\n').replace('"', '').replace('{', '')\
+                                                                .replace('}', '\n').replace('(null)', '(null) \n')
+                        f2.write(filedata)
+                        print("\nanalyzing 'dataetienne.txt'")
+                        ALLOWSUITE = True  # When ALLOWSUITE is set to true, the main loop can be run.
+        except FileNotFoundError:
+            FILEXIST = False
 
-if FILEXIST == False:
+else:
+    FILEXIST = False
+    ALLOWSUITE = False
+    print('Please enter a valid answer !')
+
+if not FILEXIST:
     print('No valid file found')
 
 # MID_FILE analyze, useful info extract, base64 GPS data decode
@@ -67,21 +83,32 @@ if ALLOWSUITE:
                         for line in f:
                             if 'data' in line:  # Base 64 decoding loop
                                 if len(line) > 6:  # Checks if there is code after data:
-                                    souschaine = line[5:len(line)]
-                                    decodage = base64.b64decode(souschaine)
-                                    liste = list(decodage)
-                                    temp = liste[1]
-                                    latitude = (((liste[6] + (liste[5] * 256) + (liste[4] * 256 * 256) + (liste[3] * 256
-                                                                                * 256 * 256)) / ((2 ** 31) - 1) * 90))
-                                    lat2 = round(latitude, 4)
+                                    try:  # Only works with Multitech Mdot data
+                                        souschaine = line[5:len(line)]
+                                        decoding = base64.b64decode(souschaine)
+                                        liste = list(decoding)
+                                        temp = liste[1]
+                                        latitude = (((liste[6] + (liste[5] * 256) + (liste[4] * 256 * 256) + (liste[3] *
+                                                                            256 * 256 * 256)) / ((2 ** 31) - 1) * 90))
+                                        lat2 = round(latitude, 4)
 
-                                    longitude = ((liste[10] + (liste[9] * 256) + (liste[8] * 256 * 256) + (liste[7] *
-                                                                            256 * 256 * 256)) / ((2 ** 31) - 1) * 180)
-                                    lng2 = round(longitude, 4)
-                                    resultat = ('Temperature = ', (str(temp)), '°C', '\n', 'Latitude = ', (str(lat2)),
-                                                '°', '\n', 'Longitude = ', (str(lng2)), '°', '\n')
-                                    result2 = ''.join(resultat)
-                                    f2.write(result2)
+                                        longitude = ((liste[10] + (liste[9] * 256) + (liste[8] * 256 * 256) + (liste[7]
+                                                                            * 256 * 256 * 256)) / ((2 ** 31) - 1) * 180)
+                                        lng2 = round(longitude, 4)
+                                        result = ('Temperature = ', (str(temp)), '°C', '\n', 'Latitude = ', (str(lat2)),
+                                                                      '°', '\n', 'Longitude = ', (str(lng2)), '°', '\n')
+                                        result2 = ''.join(result)
+                                        f2.write(result2)
+                                    except IndexError:  # Only works with Microchip RN2483 data:
+                                        souschaine = line[5:len(line)]
+                                        decoding = base64.b64decode(souschaine)
+                                        decodeutf = decoding.decode('utf-8')
+                                        kv = decodeutf.split(' ')
+                                        temp = (kv[1])[0:3]  # With Microchip data, temperature is always on 3 numbers
+                                        result = ('Light = ', kv[0], '\n' 'Temperature = ', temp, '°C',
+                                        '\n')
+                                        result2 = ''.join(result)
+                                        f2.write(result2)
                             elif 'lsnr:' in line:  # Signal to Noise Ratio retrieving
                                 lsnr = ('Signal to Noise Ratio = ', line[5:len(line)])
                                 lsnr2 = ''.join(lsnr)
@@ -104,4 +131,4 @@ if ALLOWSUITE:
                             if 'tmst:' in line:  # If end of packet is met, break
                                 break
 
-#    os.remove(MID_FILE)  # Comment for DEBUG
+os.remove(MID_FILE)  # Comment for DEBUG
