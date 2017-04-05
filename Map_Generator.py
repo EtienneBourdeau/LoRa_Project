@@ -17,7 +17,7 @@ import folium  # WARNING : Folium is not integrated to Python. Please install it
 # ------------------------- #
 
 coord_cezeaux = (45.7618, 3.1094)
-cez = folium.Map(location=coord_cezeaux, zoom_start=17)
+cez = folium.Map(location=coord_cezeaux, zoom_start=16)
 
 # ------------------------- #
 # Global Variable
