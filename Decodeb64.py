@@ -1,28 +1,31 @@
 # !/usr/bin/env python -*- coding: utf-8 -*-
 
+## NEW : V1.3 - Now asks the user which file he wants to analyze.
+## NEW : V1.3 - Now supports MicroChip RN2483 In_File.
+
 # This program allows to lay out and decode received messages from Multitech MDOT-EVB-868
 # This is a testing program, so it has been concieved for a specific file in a specific "Tests" folder.
-# You can change the files to read at line 36 and 46.
+# You can change the files to read at line 42 and 57.
 # If you want to keep the intermediary file, just comment the final line.
 # The main loop analyzes the mid_file line by line and seeks for the pattern corresponding to the wanted data.
 # Then, it decodes and calculates GPS coordinates, and write it with SNR, RSSI and time information in the out_file.
+# MicroChip RN2483 does not provide GPS coordinates, but provides information about light (un lux, abridged lx)
+
 
 # ------------------------- #
 # Module imports
 # ------------------------- #
 
-from pathlib import Path
 import base64
-import os  # useful only when commenting the last line
+import os
 
 # ------------------------- #
 # Global Variable
 # ------------------------- #
 
 MID_FILE = './mid_file.txt'
-LAURENT_FILE = Path('./In_Files/laurent/datalaurent.txt')
-ETIENNE_FILE = Path('./In_Files/etienne/dataetienne.txt')
-FILEXIST = True
+LAURENT_FILE = ('./In_Files/laurent/datalaurent.txt')
+ETIENNE_FILE = ('./In_Files/etienne/dataetienne.txt')
 ALLOWSUITE = False
 
 # ------------------------- #
@@ -36,42 +39,36 @@ test = (int(answer))
 
 # Character replacement from in_file to mid_file
 if test == 1:  # Check if datalaurent.txt exists, then lays it out to be read.
-    if FILEXIST:
-        try:
-            if LAURENT_FILE.is_file():
-                with open('./In_Files/laurent/datalaurent.txt', 'r') as f:
-                    with open(MID_FILE, 'w') as f2:
-                        filedata = f.read()
-                        filedata = filedata.replace(',', '\n').replace(' ', '\n').replace('"', '').replace('{', '')\
-                                                                .replace('}', '\n').replace('(null)', '(null) \n')
-                        f2.write(filedata)
-                        print("\nanalyzing 'datalaurent.txt'")
-                        ALLOWSUITE = True  # When ALLOWSUITE is set to true, the main loop can be run.
-        except FileNotFoundError:
-            FILEXIST = False
+    if os.path.isfile(LAURENT_FILE):
+        with open('./In_Files/laurent/datalaurent.txt', 'r') as f:
+            with open(MID_FILE, 'w') as f2:
+                filedata = f.read()
+                filedata = filedata.replace(',', '\n').replace(' ', '\n').replace('"', '').replace('{', '')\
+                                                        .replace('}', '\n').replace('(null)', '(null) \n')
+                f2.write(filedata)
+                print("\nanalyzing 'datalaurent.txt'")
+                ALLOWSUITE = True  # When ALLOWSUITE is set to true, the main loop can be run.
+    else:
+        print("'datalaurent.txt' does not exist or is not in the good folder. Please check.")
+
 
 elif test == 2:  # Check if dataetienne.txt exists, then lays it out to be read.
-    if FILEXIST:
-        try:
-            if ETIENNE_FILE.is_file():
-                with open('./In_Files/etienne/dataetienne.txt', 'r') as f:
-                    with open(MID_FILE, 'w') as f2:
-                        filedata = f.read()
-                        filedata = filedata.replace(',', '\n').replace(' ', '\n').replace('"', '').replace('{', '')\
-                                                                .replace('}', '\n').replace('(null)', '(null) \n')
-                        f2.write(filedata)
-                        print("\nanalyzing 'dataetienne.txt'")
-                        ALLOWSUITE = True  # When ALLOWSUITE is set to true, the main loop can be run.
-        except FileNotFoundError:
-            FILEXIST = False
+    if os.path.isfile(ETIENNE_FILE):
+        with open('./In_Files/etienne/dataetienne.txt', 'r') as f:
+            with open(MID_FILE, 'w') as f2:
+                filedata = f.read()
+                filedata = filedata.replace(',', '\n').replace(' ', '\n').replace('"', '').replace('{', '')\
+                                                        .replace('}', '\n').replace('(null)', '(null) \n')
+                f2.write(filedata)
+                print("\nanalyzing 'dataetienne.txt'")
+                ALLOWSUITE = True  # When ALLOWSUITE is set to true, the main loop can be run.
+    else:
+        print("'dataetienne.txt' does not exist or is not in the good folder. Please check.")
 
+# Checks if the answer is not 1 or 2:
 else:
-    FILEXIST = False
     ALLOWSUITE = False
     print('Please enter a valid answer !')
-
-if not FILEXIST:
-    print('No valid file found')
 
 # MID_FILE analyze, useful info extract, base64 GPS data decode
 
@@ -105,7 +102,7 @@ if ALLOWSUITE:
                                         decodeutf = decoding.decode('utf-8')
                                         kv = decodeutf.split(' ')
                                         temp = (kv[1])[0:3]  # With Microchip data, temperature is always on 3 numbers
-                                        result = ('Light = ', kv[0], '\n' 'Temperature = ', temp, '°C',
+                                        result = ('Light = ', kv[0], ' lx', '\n' 'Temperature = ', temp, '°C',
                                         '\n')
                                         result2 = ''.join(result)
                                         f2.write(result2)
@@ -131,4 +128,7 @@ if ALLOWSUITE:
                             if 'tmst:' in line:  # If end of packet is met, break
                                 break
 
-os.remove(MID_FILE)  # Comment for DEBUG
+try:
+    os.remove(MID_FILE)  # Comment for DEBUG
+except FileNotFoundError:
+    pass  # Do not generate an error if the program could not run.
