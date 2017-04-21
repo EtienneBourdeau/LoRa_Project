@@ -6,21 +6,16 @@
 # The map contains markers. Their position corresponds to GPS coordinates from out_file.txt. If you click on it,
 # you will have the other information written on out_file.txt
 
+# NEW v1.4 : Now automatically centers the map on the first latitude and longitude found.
+
 # ------------------------- #
-# Module imports
+#     Module imports
 # ------------------------- #
 
 import folium  # WARNING : Folium is not integrated to Python. Please install it before running this code.
 
 # ------------------------- #
-# Map Creation
-# ------------------------- #
-
-coord_cezeaux = (45.7618, 3.1094)
-cez = folium.Map(location=coord_cezeaux, zoom_start=16)
-
-# ------------------------- #
-# Global Variable
+#     Global Variable
 # ------------------------- #
 
 file = './out_file.txt' # Name of file to read
@@ -32,7 +27,31 @@ RSSI = 'Received Signal Strength Indicator (dBm)'
 DAT = 'Date'
 
 # ------------------------- #
-# Main Program
+#      Map Creation
+# ------------------------- #
+
+with open('./out_file.txt', 'r') as f:  # Finds the first latitude and longitude in out_file.
+    lat1 = None
+    lng1 = None
+    for line in f:  # Analyzes out_file line by line
+        kv = line.split(' = ')  # kv = Key Value. kv[0] = Key (text before '='). kv[1] = Value (values after '=')
+        if kv[0] == LAT:
+            value = kv[1].strip('°\n')
+            lat1 = float(value)
+        elif kv[0] == LNG:
+            value = kv[1].strip('°\n')
+            lng1 = float(value)
+            break
+
+coord = (lat1, lng1)
+mymap = folium.Map(location=coord, zoom_start=16)
+
+# coord_cezeaux = (45.7618, 3.1094)
+# cez = folium.Map(location=coord_cezeaux, zoom_start=16)
+
+
+# ------------------------- #
+#      Main Program
 # ------------------------- #
 try:
     with open(file, 'r') as f:
@@ -68,17 +87,17 @@ try:
                                str(lng), '° || ', 'Signal to Noise Ratio (SNR) = ', str(lsnr), ' || ',
                                ' Received Signal Strength Indicator (dBm) = ', str(rssi), ' ||', ' Date = ', str(dat))
                 markerpopup2 = ''.join(markerpopup)
-                folium.Marker([lat, lng], popup=markerpopup2).add_to(cez)  # Creation of the marker
+                folium.Marker([lat, lng], popup=markerpopup2).add_to(mymap)  # Creation of the marker
                 lat = None
                 lng = None  # Set back latitude and longitude to False, else they won't be found on next iteration.
                 creamap = True
 
 # ------------------------- #
-# Map Save
+#        Map Save
 # ------------------------- #
 
     if creamap == True:
-        cez.save('./map.html')  # Save map with markers on it
+        mymap.save('./map.html')  # Save map with markers on it
     else:
         print('Unable to generate a map. Please check latitudes and longitudes in out_file.')
         print("If you did not use Multitech Mdot data with Decodeb64.py, you may not have GPS data.")

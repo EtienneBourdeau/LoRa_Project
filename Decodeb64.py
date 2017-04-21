@@ -42,10 +42,10 @@ if test == 1:  # Check if datalaurent.txt exists, then lays it out to be read.
     if os.path.isfile(LAURENT_FILE):
         with open('./In_Files/laurent/datalaurent.txt', 'r') as f:
             with open(MID_FILE, 'w') as f2:
-                filedata = f.read()
-                filedata = filedata.replace(',', '\n').replace(' ', '\n').replace('"', '').replace('{', '')\
+                filecontent = f.read()
+                filecontent = filecontent.replace(',', '\n').replace(' ', '\n').replace('"', '').replace('{', '')\
                                                         .replace('}', '\n').replace('(null)', '(null) \n')
-                f2.write(filedata)
+                f2.write(filecontent)
                 print("\nanalyzing 'datalaurent.txt'")
                 ALLOWSUITE = True  # When ALLOWSUITE is set to true, the main loop can be run.
     else:
@@ -56,10 +56,10 @@ elif test == 2:  # Check if dataetienne.txt exists, then lays it out to be read.
     if os.path.isfile(ETIENNE_FILE):
         with open('./In_Files/etienne/dataetienne.txt', 'r') as f:
             with open(MID_FILE, 'w') as f2:
-                filedata = f.read()
-                filedata = filedata.replace(',', '\n').replace(' ', '\n').replace('"', '').replace('{', '')\
+                filecontent = f.read()
+                filecontent = filecontent.replace(',', '\n').replace(' ', '\n').replace('"', '').replace('{', '')\
                                                         .replace('}', '\n').replace('(null)', '(null) \n')
-                f2.write(filedata)
+                f2.write(filecontent)
                 print("\nanalyzing 'dataetienne.txt'")
                 ALLOWSUITE = True  # When ALLOWSUITE is set to true, the main loop can be run.
     else:
@@ -80,23 +80,23 @@ if ALLOWSUITE:
                         for line in f:
                             if 'data' in line:  # Base 64 decoding loop
                                 if len(line) > 6:  # Checks if there is code after data:
-                                    try:  # Only works with Multitech Mdot data
-                                        souschaine = line[5:len(line)]
-                                        decoding = base64.b64decode(souschaine)
-                                        liste = list(decoding)
-                                        temp = liste[1]
-                                        latitude = (((liste[6] + (liste[5] * 256) + (liste[4] * 256 * 256) + (liste[3] *
+                                    souschaine = line[5:len(line)]
+                                    decoding = base64.b64decode(souschaine)
+                                    list1 = list(decoding)
+                                    if (len(list1)) == 11:
+                                        temp = list1[1]
+                                        latitude = (((list1[6] + (list1[5] * 256) + (list1[4] * 256 * 256) + (list1[3] *
                                                                             256 * 256 * 256)) / ((2 ** 31) - 1) * 90))
                                         lat2 = round(latitude, 4)
 
-                                        longitude = ((liste[10] + (liste[9] * 256) + (liste[8] * 256 * 256) + (liste[7]
+                                        longitude = ((list1[10] + (list1[9] * 256) + (list1[8] * 256 * 256) + (list1[7]
                                                                             * 256 * 256 * 256)) / ((2 ** 31) - 1) * 180)
                                         lng2 = round(longitude, 4)
                                         result = ('Temperature = ', (str(temp)), '°C', '\n', 'Latitude = ', (str(lat2)),
                                                                       '°', '\n', 'Longitude = ', (str(lng2)), '°', '\n')
                                         result2 = ''.join(result)
                                         f2.write(result2)
-                                    except IndexError:  # Only works with Microchip RN2483 data:
+                                    elif (len(list1)) < 11 :  # Only works with Microchip RN2483 data:
                                         souschaine = line[5:len(line)]
                                         decoding = base64.b64decode(souschaine)
                                         decodeutf = decoding.decode('utf-8')
@@ -106,6 +106,33 @@ if ALLOWSUITE:
                                         '\n')
                                         result2 = ''.join(result)
                                         f2.write(result2)
+                                    elif (len(list1)) > 11:
+                                        data = decoding.hex()
+                                        res1 = (int((data)[2:4], 16))
+                                        calcx = res1 * 0.0625
+
+                                        res2 = (int((data)[4:6], 16))
+                                        calcy = res2 * 0.0625
+
+                                        res3 = (int((data)[6:8], 16))
+                                        calcz = res3 * 0.0625
+
+                                        res4 = (int((data)[11:16], 16))
+                                        calcp = res4 * 0.25
+
+                                        res5 = (int((data)[18:22], 16))
+
+                                        res6 = (int((data)[24:len(data)], 16))
+                                        calct = res6 * 0.0625
+
+                                        result = ('Acceleration (x) = ', (str(calcx)), 'g\n', 'Acceleration (y) = ',
+                                                  (str(calcy)), 'g\n', 'Acceleration (z) = ', (str(calcz)), 'g\n',
+                                                  'Pressure = ', (str(calcp)), 'kPa\n', 'Light = ', (str(res5)), 'lx\n',
+                                                  'Temperature = ', (str(calct)), '°C\n')
+
+                                        result2 = ''.join(result)
+                                        f2.write(result2)
+
                             elif 'lsnr:' in line:  # Signal to Noise Ratio retrieving
                                 lsnr = ('Signal to Noise Ratio = ', line[5:len(line)])
                                 lsnr2 = ''.join(lsnr)
@@ -129,6 +156,6 @@ if ALLOWSUITE:
                                 break
 
 try:
-    os.remove(MID_FILE)  # Comment for DEBUG
+   os.remove(MID_FILE)  # Comment for DEBUG
 except FileNotFoundError:
     pass  # Do not generate an error if the program could not run.
