@@ -1,2 +1,3 @@
 cd C:\Program Files\PuTTY
-putty.exe root@192.168.2.1 -pw root
+putty.exe root@192.168.3.254 -pw root
+exit 0
