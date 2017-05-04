@@ -1,12 +1,12 @@
 # !/usr/bin/env python -*- coding: utf-8 -*-
 
+## NEW v1.4 : Now automatically centers the map on the first latitude and longitude found.
+
 # Use ONLY after decodeb64.py, since you will need out_file.txt it creates.
 # This code is NOT portable, you need to install the folium module first.
 # This program creates a map in html in the same folder from where you execute this program.
 # The map contains markers. Their position corresponds to GPS coordinates from out_file.txt. If you click on it,
 # you will have the other information written on out_file.txt
-
-# NEW v1.4 : Now automatically centers the map on the first latitude and longitude found.
 
 # ------------------------- #
 #     Module imports
@@ -46,10 +46,6 @@ with open('./out_file.txt', 'r') as f:  # Finds the first latitude and longitude
 coord = (lat1, lng1)
 mymap = folium.Map(location=coord, zoom_start=16)
 
-# coord_cezeaux = (45.7618, 3.1094)
-# cez = folium.Map(location=coord_cezeaux, zoom_start=16)
-
-
 # ------------------------- #
 #      Main Program
 # ------------------------- #
@@ -63,8 +59,10 @@ try:
         lsnr = None
         creamap = None
         for line in f:
-            kv = line.split(' = ')  # Creates a table, splitting columns from '=': 1st element is the key, 2nd is the value.
-            if kv[0] == TMP:  # Checks if each line contains the wanted pattern(patterns are set in Global Variables above).
+            kv = line.split(' = ')  # Creates a table, splitting columns from '=': 1st element is the key, 2nd is the
+                                    # value.
+            if kv[0] == TMP:  # Checks if each line contains the wanted pattern(patterns are set in Global Variables
+                              # above).
                 value = kv[1].strip('°C\n')
                 tmp = float(value)
             elif kv[0] == LAT:
@@ -96,11 +94,12 @@ try:
 #        Map Save
 # ------------------------- #
 
-    if creamap == True:
+    if creamap:
         mymap.save('./map.html')  # Save map with markers on it
     else:
         print('Unable to generate a map. Please check latitudes and longitudes in out_file.')
-        print("If you did not use Multitech Mdot data with Decodeb64.py, you may not have GPS data.")
+        print("If you did not use Multitech Mdot data in 'GPS Survey' mode with Decodeb64.py, you may not have "
+              "GPS data.")
         creamap = False
 
 except FileNotFoundError:
